@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, unquote
 from src.http_client import fetch
+from src.html_parser import to_text
 
 
 SEARCH_URL = "https://html.duckduckgo.com/html/"
@@ -22,7 +23,7 @@ def search(term):
         print(f"  {i}. {title}")
         print(f"     {link}\n")
 
-    return results
+    _prompt_open(results)
 
 
 def _parse_results(html):
@@ -45,6 +46,23 @@ def _parse_results(html):
             break
 
     return results
+
+
+def _prompt_open(results):
+    try:
+        choice = input("Open a result? Enter number (or press Enter to skip): ").strip()
+        if not choice:
+            return
+        n = int(choice)
+        if not 1 <= n <= len(results):
+            print(f"Pick a number between 1 and {len(results)}.")
+            return
+        title, link = results[n - 1]
+        print(f"\nFetching: {link}\n")
+        response = fetch(link)
+        print(to_text(response))
+    except (ValueError, KeyboardInterrupt):
+        print()
 
 
 def _clean_url(href):
