@@ -120,6 +120,12 @@ def fetch(url, _redirects=0, extra_headers=None):
     if _redirects > MAX_REDIRECTS:
         raise RuntimeError("Too many redirects")
 
+    from src.cache import get as cache_get, store as cache_store
+
+    cached = cache_get(url)
+    if cached:
+        return cached
+
     scheme, host, port, path = _parse_url(url)
     raw = _send_request(scheme, host, port, path, extra_headers)
     response = _parse_response(raw)
@@ -132,4 +138,5 @@ def fetch(url, _redirects=0, extra_headers=None):
             print(f"  → Redirect {response['status']}: {location}")
             return fetch(location, _redirects + 1, extra_headers)
 
+    cache_store(url, response)
     return response
