@@ -29,7 +29,7 @@ def _send_request(scheme, host, port, path, extra_headers=None):
     headers = {
         "Host": host,
         "User-Agent": "go2web/1.0",
-        "Accept": "text/html,application/json,*/*;q=0.9",
+        "Accept": "text/html;q=0.9,application/json;q=1.0,application/ld+json;q=0.8,*/*;q=0.5",
         "Accept-Encoding": "gzip, deflate",
         "Connection": "close",
     }
