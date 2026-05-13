@@ -1,4 +1,3 @@
-import argparse
 import sys
 
 
@@ -17,30 +16,51 @@ Examples:
 
 
 def run(args):
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("-u", metavar="URL", dest="url", help="URL to fetch")
-    parser.add_argument("-s", metavar="TERM", dest="search", nargs="+", help="Search term")
-    parser.add_argument("-h", action="store_true", dest="help", help="Show help")
-
-    parsed = parser.parse_args(args)
-
-    if parsed.help or not args:
+    if not args or args[0] in ("-h", "--help"):
         print(HELP_TEXT)
         sys.exit(0)
 
-    if parsed.url:
-        from src.http_client import fetch
-        from src.html_parser import to_text
+    flag = args[0]
+    rest = args[1:]
 
-        response = fetch(parsed.url)
-        print(to_text(response))
+    if flag == "-u":
+        if not rest:
+            print("Error: -u requires a URL.\n")
+            print(HELP_TEXT)
+            sys.exit(1)
+        _cmd_url(rest[0])
 
-    elif parsed.search:
-        from src.search import search
-
-        term = " ".join(parsed.search)
-        search(term)
+    elif flag == "-s":
+        if not rest:
+            print("Error: -s requires a search term.\n")
+            print(HELP_TEXT)
+            sys.exit(1)
+        _cmd_search(" ".join(rest))
 
     else:
+        print(f"Unknown option: {flag}\n")
         print(HELP_TEXT)
+        sys.exit(1)
+
+
+def _cmd_url(url):
+    from src.http_client import fetch
+    from src.html_parser import to_text
+    try:
+        response = fetch(url)
+        print(to_text(response))
+    except RuntimeError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except OSError as e:
+        print(f"Connection error: {e}")
+        sys.exit(1)
+
+
+def _cmd_search(term):
+    from src.search import search
+    try:
+        search(term)
+    except OSError as e:
+        print(f"Connection error: {e}")
         sys.exit(1)
